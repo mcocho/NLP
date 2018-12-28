@@ -1,4 +1,14 @@
-# import packages
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Dec 28 17:03:42 2018
+
+@author: mc
+
+Creates a list with all the links to the pdf's with the locations of speed cameras
+"""
+
+## import packages
 import urllib
 import re
 from bs4 import BeautifulSoup
@@ -14,5 +24,7 @@ resSet = soup.find_all(href=re.compile(".pdf"))
 # extract link strings from resSet and store in list
 linkTable = list()
 for link in resSet:
-    linkTable.append(link.attrs.get('href'))
-    
+    linkTable.append('https://www.police.wa.gov.au' + link.attrs.get('href'))
+        
+  
+        
