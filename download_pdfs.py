@@ -6,6 +6,7 @@ import time
 import logging
 import sys
 import os
+import urllib
 
 from main import parse_args
 from utils import ConfigReader, query_yes_no
@@ -42,6 +43,11 @@ if __name__ == "__main__":
     hp = html_parser(url=config.main_url, download_directory=config.pdf_folder)
     hp.parse_page()
     logger.info("\t {} pdf documents found".format(len(hp._pdf_links)))
-    print(hp._pdf_links)
-    # TODO:
-        # download and save pdfs
+    print(hp._pdf_links, sep='\n')
+
+    # download and save pdfs
+    logger.info("downloading pdfs to {}".format(hp.download_directory))
+    for link in hp._pdf_links:
+        filename = hp.download_directory + 'speedCameraLocations' + link[-24:]
+        urllib.request.urlretrieve(link,filename)
+    logger.info("pdfs downloaded")
