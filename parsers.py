@@ -37,5 +37,25 @@ class html_parser(object):
 
 
 class pdf_parser():
-    def __init__(self):
-        pass
+    def __init__(self, path=None, dataBase=None):
+        
+        self.path = path
+        self.dataBase = dataBase
+
+        self.speedCamWk1 = None
+        self.speedCamWk2 = None
+
+    def parse_pdf(self):
+        
+        ## read tables from pdf, assuming the 1st one is located in the 1st half of the page
+        # and that the seconc one is located in the second half. tabula is being fiddly, so 
+        # 1st column name of the table is the date, and the 1st row is 
+        # "street name, suburb, street name, suburb", the next rows are the actual street names/suburbs
+        #TODO:
+        # could use pass read_pdf a template here, to make this cleaner.
+        self.speedCamWk1 = tabula.read_pdf(self.path,relative_area=True,area=(0,0,50,100))
+        self.speedCamWk2 = tabula.read_pdf(self.path,relative_area=True,area=(50,0,100,100))
+
+        #TODO:
+        #write to database
+
