@@ -112,18 +112,18 @@ def get_list_of_files(directory, extension=False):
     Return a list of files from a given directory. The list can be filtered by
     specifying strings for 'extension'
     """
-    logger.debut("Scanning folder {}".format(directory))
-    raw = os.path.lsdir(directory)
+    logger.debug("Scanning folder {}".format(directory))
+    raw = os.listdir(directory)
     logger.debug("{} files found".format(len(raw)))
 
     to_keep = []
     if extension:
-        logger.debug("Filtering file with extension: {}".format(must_contain))
+        logger.debug("Filtering file with extension: {}".format(extension))
         for f in raw:
             if f.endswith(extension):
                 to_keep.append(f)
     else:
         to_keep = raw
 
-    logger.debug("{} files remaining".format(len(final)))
+    logger.debug("{} files remaining".format(len(to_keep)))
     return to_keep

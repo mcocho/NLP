@@ -8,7 +8,8 @@ import sys
 import os
 
 from main import parse_args
-from utils import ConfigReader, query_yes_no
+from utils import *
+from parsers import *
 
 # Logging configuration
 logging.basicConfig(
@@ -29,13 +30,13 @@ desc = """ This script creates an empty sqlite database.
 # as TEXT
 tables = {
     'camera' : '''
-    CREATE TABLE camera(
-    id INTEGER PRIMARY KEY,
-    date TEXT,
+    CREATE TABLE camera
+    (id INTEGER PRIMARY KEY,
     day TEXT,
     street TEXT,
-    surburn TEXT,
-    date_added  TIMESTAMP DEFAULT (DATETIME(current_timestamp, 'localtime')))
+    surburb TEXT,
+    date_added  TIMESTAMP DEFAULT (DATETIME(current_timestamp, 'localtime'))
+    )
     ''',
 }
 
@@ -53,6 +54,26 @@ def create_db(database):
             db.commit()
     db.close()
 
+def add_records_to_db(database, df):
+    # This should probably go in the pdf_parser class #FIXME
+    # Connecting to the database file
+    db = sqlite3.connect(database)
+    with db:
+        cursor = db.cursor()
+
+        # Loop on the df which is probably inefficient #FIXME
+        for i, r in df.iterrows():
+            st = """INSERT INTO camera (street, surburb, day)
+            VALUES ("{street}", "{surburb}", {day})""".format(
+                                              street=r['Street Name'],
+                                              surburb=r['Suburb'],
+                                              day=r['Date'].strftime("%d-%m-%Y"))
+            try:
+                cursor.execute(st)
+            except sqlite3.IntegrityError:
+                logger.erro('ERROR: cannot add row\n {}'.format(r))
+        db.commit()
+    db.close()
 
 if __name__ == "__main__":
     args = parse_args()
@@ -69,8 +90,8 @@ if __name__ == "__main__":
 
     logger.debug("Checking if db {} already exists".format(config.database))
     if os.path.isfile(config.database):
-        logger.info("DB {} already exists and will be overwritten")
-        if not query_yes_no("Continue ?"):
+        q = query_yes_no("DB already exists and will be overwritten. Continue ?")
+        if not q:
             sys.exit(0)
 
     logger.info("Create the database: {}".format(config.database))
@@ -80,13 +101,16 @@ if __name__ == "__main__":
     populate_db = False
     if os.path.isdir(config.pdf_folder):
         pdfs = get_list_of_files(config.pdf_folder, extension='pdf')
-        logger.info("\t {} pdf files found")
+        logger.info("\t {} pdf files found".format(len(pdfs)))
         populate_db = query_yes_no("Do you want to populate the database ?")
 
     if populate_db:
-        pass
-        # TODO: write download_pdfs.py to download all the pdfs available
-        # TODO: parse pdf and insert into db
+        logger.debug("Populating db...")
+        for pdf in pdfs:
+            logger.debug("Reading pdf file: {}".format(pdf))
+            ph = pdf_parser(filename=pdf, folder=config.pdf_folder)
+            ph.load_pdf()
+            logger.debug("Adding {} entries into db".format(ph.data.shape[0]))
+            add_records_to_db(config.database, ph.data)
 
     logger.info("Finished")
-    #create_db()
